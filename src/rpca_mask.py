@@ -7,7 +7,6 @@ def svs_RPCA(wave, fs=44100., l=1., n_fft=1024,
                     win_size=1024, mask_type=1, gain=1, power=1, scf=2./3.):
             
     hop_size = int(win_size / 4.)
-    print(hop_size)
     S_mix = scf * librosa.core.stft(wave, n_fft=n_fft, 
                                     hop_length=hop_size, win_length=win_size)
     
@@ -29,12 +28,11 @@ def svs_RPCA(wave, fs=44100., l=1., n_fft=1024,
     voice = voice / np.max(np.abs(voice))
     accom = accom / np.max(np.abs(accom))
 
-    
     return voice, accom
-    
+
 
 if __name__ == '__main__':
-    clip, fs = librosa.load('../examples/c1.wav', mono=False,sr=44100)
+    clip, fs = librosa.load('examples/c1.wav', mono=False,sr=44100)
     clip = clip.T
     clip = clip[:,1] + clip[:,0]
     voice, accom = svs_RPCA(clip)

@@ -29,6 +29,7 @@ def nmf(V, W, max_iter=10, random_state=0):
     eps = np.finfo(float).eps
 
     for i in range(0, max_iter):
-        H = H * (np.dot(W.T, V / (np.dot(W,H) + eps))) / (np.dot(W.T, ones))
+        H = H * (np.dot(W.T, V / (np.dot(W, H) + eps))) / (np.dot(W.T, ones))
+
     return H
     
