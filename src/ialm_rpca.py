@@ -65,9 +65,9 @@ def ialm_RPCA(D, l=None, tol=5e-6, max_iter=1000, mu=1.25, rho=1.5):
         U, S, V = svd(D - E_hat + (1. / u) * Y, full_matrices=False)
 
         
+        # in np, S is a vector of 'diagonal value', 
+        # so we don't need to do np.diag like the code in matlab
         svp = (S > 1 / u).shape[0]
-        #diag_S = np.diag(S)
-        #svp = np.count_nonzero((diag_S > 1 / u) == 1)
 
         if svp < sv:
             sv = np.minimum(svp + 1, m)
