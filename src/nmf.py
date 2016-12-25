@@ -25,7 +25,7 @@ def nmf(V, W, max_iter=10, random_state=0):
     F, T = V.shape
     K = W.shape[1]
     ones = np.ones((F, T))
-    H = np.rand(K, T)
+    H = np.random.rand(K, T)
     eps = np.finfo(float).eps
 
     for i in range(0, max_iter):
