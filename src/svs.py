@@ -35,3 +35,12 @@ def svs(wave, fs=44100., v_centered=True):
 
     return voice, accom
 
+
+if __name__ == '__main__':
+    import librosa
+
+    clip, fs = librosa.load('examples/c1.wav', mono=False, sr=44100)
+    voice, accom = svs(clip, fs)
+    librosa.output.write_wav('c1_voice.wav', voice, sr=44100)
+    librosa.output.write_wav('c1_accom.wav', accom, sr=44100)
+
