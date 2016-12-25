@@ -92,8 +92,28 @@ def select_notes(H, n=3, t_len=3):
 
     return selected
     
-def smooth_activation():
-    pass
+def smooth_activation(H, t_len=3, hop_size=9):
+
+    w = int(hop_size / 2)
+    energy_mat = np.zeros((int(H.shape[0] / t_len), H.shape[1]))
+    smoothed = np.zeros(H.shape)
+
+    for i in range(0, H.shape[0]):
+        energy_mat[:, i] = sum_energy(H[:, i], t_len=t_len)
+
+    r, c = np.where(energy_mat == 0)
+    time_len = energy_mat.shape[1]
+    
+    for i, j in zip(r, c):
+        s = np.maximum(0, j - w)        # start
+        e = np.minimum(time_len, j + w) # end
+        
+        indices, _ = np.where(energy_mat[i, s:e] > 0) 
+        if (len(lb) != 0) and (w > indices[0]) and (w < indices[-1]):
+            offset = i * t_num
+            smoothed[offset:offset+t_len, j] = np.mean(H[offset:offset+t_len, j], axis=1)
+            
+    return smoothed
 
 def sum_energy(v, t_len=3):
 
