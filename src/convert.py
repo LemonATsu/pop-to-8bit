@@ -5,6 +5,7 @@ import librosa
 import scipy.io as spio
 from scipy.signal import hamming
 from nmf import nmf
+from pyin import pYIN
 
 t_path = os.path.dirname(__file__) + '/../templates/'
 
@@ -17,42 +18,25 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
 
     if voice is not None:
         voice_spec = librosa.core.stft(voice, n_fft=win_size, 
-                                        win_length=win_size, window=window, hop_length=hop_size)
-        voice_8bit = convert_8bit_voice(np.abs(voice_spec), voice_template, max_iter)
+                                           win_length=win_size, window=window, hop_length=hop_size)
+        voice_8bit = convert_8bit_voice(voice, np.abs(voice_spec), voice_template, fs=fs, 
+                                            hop_size=hop_size, max_iter=max_iter)
 
     if accom is not None:
         accom_spec = librosa.core.stft(accom, n_fft=win_size, 
-                                        win_length=win_size, window=window, hop_length=hop_size)
-        accom_8bit = convert_8bit_accom(np.abs(accom_spec), accom_template, hop_size=hop_size, max_iter=max_iter)
+                                           win_length=win_size, window=window, hop_length=hop_size)
+        accom_8bit = convert_8bit_accom(np.abs(accom_spec), accom_template, 
+                                            hop_size=hop_size, max_iter=max_iter)
 
     return voice_8bit, accom_8bit
 
-
-
-def convert_8bit_accom(V, template, hop_size=1024,max_iter=10):
-
-    W = load_mat(template, mat_type='d')
-    T = load_mat(template, mat_type='t')
-    H = nmf(V, W, max_iter)
-    # keep the top 3 notes with the highest energy 
-    # in each activation frame
-    H = select_notes(H, n=3)
-    
-    # TODO : smooth activation matrix
-    H = smooth_activation(H)
-
-    # TODO : convert to time-domain
-
-    accom_8bit = convert_to_timedomain(H, hop_size, T)
-
-    return accom_8bit
-
-def convert_8bit_voice(V, template, max_iter):
+def convert_8bit_voice(voice, V, template, fs=44100, hop_size=1024, max_iter=10):
 
     W = load_mat(template, mat_type='d')
     H = nmf(V, W, max_iter)
 
-    # TODO : pYin, and 'pick up' the notes
+    # TODO : pYIN, and 'pick up' the notes
+    midi = pYIN(voice, fs=fs, hop_size=hop_size)
 
     # TODO : smooth activation
 
@@ -64,6 +48,24 @@ def convert_8bit_voice(V, template, max_iter):
     voice_8bit = []
 
     return voice_8bit
+
+def convert_8bit_accom(V, template, hop_size=1024, max_iter=10):
+
+    W = load_mat(template, mat_type='d')
+    T = load_mat(template, mat_type='t')
+    H = nmf(V, W, max_iter)
+    #H = spio.loadmat('examples/h.mat')['xdc']
+    # keep the top 3 notes with the highest energy 
+    # in each activation frame
+    H = select_notes(H, n=3)
+    
+    # smooth activation matrix
+    H = smooth_activation(H)
+
+    # convert to time-domain
+    accom_8bit = convert_to_timedomain(H, hop_size, T)
+
+    return accom_8bit
 
 def load_mat(name, mat_type='d'):
 
@@ -87,7 +89,9 @@ def select_notes(H, n=3, t_len=3):
 
     for i in range(0, H.shape[1]):
         energy = sum_energy(H[:, i], t_len=t_len)
-        _, indices = find_nlargest(energy, n=n)
+        value, _ = find_nlargest(energy, n=n)
+        energy[energy < value] = 0
+        indices = np.where(energy != 0)[0]
         for j in indices:
             s = j * t_len
             selected[s:s+t_len, i] = H[s:s+t_len, i]
@@ -100,20 +104,22 @@ def smooth_activation(H, t_len=3, hop_size=9):
     energy_mat = np.zeros((int(H.shape[0] / t_len), H.shape[1]))
     smoothed = np.copy(H)
 
-    for i in range(0, H.shape[0]):
+    for i in range(0, H.shape[1]):
         energy_mat[:, i] = sum_energy(H[:, i], t_len=t_len).flatten()
 
     r, c = np.where(energy_mat == 0)
     time_len = energy_mat.shape[1]
     
+    cnt = 0
     for i, j in zip(r, c):
         s = np.maximum(0, j - w)        # start
-        e = np.minimum(time_len, j + w) # end
+        e = np.minimum(time_len, j + w + 1) # end
         
         indices = np.where(energy_mat[i, s:e] != 0)[0] 
         if (indices.shape[0] != 0) and (w > indices[0]) and (w < indices[-1]):
             offset = i * t_len
             # np.mean is also applicable
+            cnt += 1
             smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, s:e], axis=1)
             
     return smoothed
@@ -160,6 +166,8 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
             e = e * hop_size
             result[s:e, 0] = result[s:e, 0] + signal_8bit[0:rng] * energies 
     
+    result = result / (np.max(result) - np.min(result))
+
     return result
 
 def sum_energy(v, t_len=3):
@@ -181,7 +189,7 @@ def find_nlargest(v, n=3):
 
     for i in range(0, n):
         index = np.argmax(x)
-        value = x[index]
+        value = x[index].copy()
         x[index] = -np.inf
         indices.append(index)
 
@@ -195,7 +203,7 @@ if __name__ == '__main__':
     accom, fs = librosa.load('examples/c1_accom.wav', sr=44100.)
 
     v8, a8 = convert_to_8bit(accom=accom)
-    librosa.output.write_wav('accom_8.wav', a8, sr=44100)
+    librosa.output.write_wav('accom_8.wav', a8, sr=44100, norm=False)
     
     
 
