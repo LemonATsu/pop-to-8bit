@@ -58,10 +58,8 @@ def convert_8bit_accom(V, template, hop_size=1024, max_iter=10):
     # keep the top 3 notes with the highest energy 
     # in each activation frame
     H = select_notes(H, n=3)
-    
     # smooth activation matrix
     H = smooth_activation(H)
-
     # convert to time-domain
     accom_8bit = convert_to_timedomain(H, hop_size, T)
 
@@ -110,7 +108,6 @@ def smooth_activation(H, t_len=3, hop_size=9):
     r, c = np.where(energy_mat == 0)
     time_len = energy_mat.shape[1]
     
-    cnt = 0
     for i, j in zip(r, c):
         s = np.maximum(0, j - w)        # start
         e = np.minimum(time_len, j + w + 1) # end
@@ -119,7 +116,6 @@ def smooth_activation(H, t_len=3, hop_size=9):
         if (indices.shape[0] != 0) and (w > indices[0]) and (w < indices[-1]):
             offset = i * t_len
             # np.mean is also applicable
-            cnt += 1
             smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, s:e], axis=1)
             
     return smoothed
@@ -171,6 +167,22 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
     return result
 
 def sum_energy(v, t_len=3):
+    """
+    Compute the energy of templates in a given time frame,
+    by finding the max value in templates' component.
+
+    Parameters
+    ----------
+    v : ndarray
+        Time frame as a vector.
+    t_len : int
+        The number of components in a template. t_len=3 by default
+
+    Returns
+    -------
+    energy : ndarray
+        Vectors of 
+    """
 
     c = np.abs(v).reshape(-1, 1)
     e_len = int(v.shape[0] / t_len)
@@ -183,6 +195,24 @@ def sum_energy(v, t_len=3):
     return energy
 
 def find_nlargest(v, n=3):
+    """
+    Find the top n candidates with the strongest activavtion in a given time frame.
+
+    Parameters
+    ----------
+    v : ndarray
+        Time frame as a vector.
+    n : int
+        Number of candidates that we have to find.
+
+    Returns
+    -------
+    value : float
+        The n-th strongest activation.
+    indices : list
+        Indices of candidates
+
+    """
 
     indices = []
     x = v.copy()
