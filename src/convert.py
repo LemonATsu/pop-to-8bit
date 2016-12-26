@@ -6,7 +6,6 @@ from nmf import nmf
 
 t_path = os.path.dirname(__file__) + '/../templates/'
 
-
 def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1024, 
                         voice_template='pulsenarrow', accom_template='spiky', max_iter=10):
 
@@ -99,7 +98,7 @@ def smooth_activation(H, t_len=3, hop_size=9):
     smoothed = np.zeros(H.shape)
 
     for i in range(0, H.shape[0]):
-        energy_mat[:, i] = sum_energy(H[:, i], t_len=t_len)
+        energy_mat[:, i] = sum_energy(H[:, i], t_len=t_len).flatten()
 
     r, c = np.where(energy_mat == 0)
     time_len = energy_mat.shape[1]
@@ -108,13 +107,57 @@ def smooth_activation(H, t_len=3, hop_size=9):
         s = np.maximum(0, j - w)        # start
         e = np.minimum(time_len, j + w) # end
         
-        indices, _ = np.where(energy_mat[i, s:e] > 0) 
-        if (len(lb) != 0) and (w > indices[0]) and (w < indices[-1]):
+        indices = np.where(energy_mat[i, s:e] > 0)[0] 
+        if (indices.shape[0] != 0) and (w > indices[0]) and (w < indices[-1]):
             offset = i * t_num
             # np.mean is also applicable
             smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, j], axis=1)
             
     return smoothed
+
+def convert_to_timedomain(H, hop_size, template, t_len=3):
+    
+    m, n = H.shape
+    result = np.zeros((n * hop_size, 1))
+    segments = []
+
+    for i in range(0, m, t_len):
+        note = int(i / t_len) 
+    
+        row = H[i, :]
+        # pad 0 at each end, so the difference on both ends can be detected
+        nonzero = np.concatenate(([0], np.greater(np.abs(row).view(np.int8), 0), [0]))
+        # absdiff, so we will have value 1 at the begin and end points 
+        # of the consecutive non-zero elements.
+        # by doing so, we can mark the begin and end points of a segments
+        absdiff = np.abs(np.diff(nonzero))
+        indices = np.where(absdiff == 1)[0].reshape(-1, 2)
+        
+        for j in range(0, indices.shape[0]):
+            # s and e represent the start and end point of a segment
+            s = indices[j, 0]
+            e = indices[j, 1]
+            # s - e = 1 indicates the segment has only one frame
+            rng = e - s
+            if rng <= 1:
+                continue
+
+            signal_8bit = template[:, note]
+            # turn into time-domain length
+            rng = rng * hop_size
+            # pad the signal if it's not long enough
+            while np.shape[0] < rng : 
+                signal_8bit = np.concatenate((signal_8bit, signal_8bit))
+            energies = np.mean(H[i:i+t_len, s:e], axis=0) 
+            # extend energy matrix to match time-domain length
+            energies = np.repeat(energies, hop_size, axis=1)
+            
+            # turn into time-domain length
+            s = s * hop_size
+            e = e * hop_size
+            result[s:e] = result[s:e] + signal_8bit[0:rng] * energies 
+    
+    return result
 
 def sum_energy(v, t_len=3):
 
