@@ -1,7 +1,9 @@
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 import librosa
 import scipy.io as spio
+from scipy.signal import hamming
 from nmf import nmf
 
 t_path = os.path.dirname(__file__) + '/../templates/'
@@ -11,26 +13,27 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
 
     voice_8bit = None
     accom_8bit = None
+    window = hamming(win_size, sym=False)
 
     if voice is not None:
         voice_spec = librosa.core.stft(voice, n_fft=win_size, 
-                                        win_length=win_size, hop_length=hop_size)
+                                        win_length=win_size, window=window, hop_length=hop_size)
         voice_8bit = convert_8bit_voice(np.abs(voice_spec), voice_template, max_iter)
 
     if accom is not None:
         accom_spec = librosa.core.stft(accom, n_fft=win_size, 
-                                        win_length=win_size, hop_length=hop_size)
-        accom_8bit = convert_8bit_accom(np.abs(accom_spec), accom_template, max_iter)
+                                        win_length=win_size, window=window, hop_length=hop_size)
+        accom_8bit = convert_8bit_accom(np.abs(accom_spec), accom_template, hop_size=hop_size, max_iter=max_iter)
 
     return voice_8bit, accom_8bit
 
 
 
-def convert_8bit_accom(V, template, max_iter):
+def convert_8bit_accom(V, template, hop_size=1024,max_iter=10):
 
     W = load_mat(template, mat_type='d')
+    T = load_mat(template, mat_type='t')
     H = nmf(V, W, max_iter)
-
     # keep the top 3 notes with the highest energy 
     # in each activation frame
     H = select_notes(H, n=3)
@@ -40,7 +43,7 @@ def convert_8bit_accom(V, template, max_iter):
 
     # TODO : convert to time-domain
 
-    accom_8bit = []
+    accom_8bit = convert_to_timedomain(H, hop_size, T)
 
     return accom_8bit
 
@@ -95,7 +98,7 @@ def smooth_activation(H, t_len=3, hop_size=9):
 
     w = int(hop_size / 2)
     energy_mat = np.zeros((int(H.shape[0] / t_len), H.shape[1]))
-    smoothed = np.zeros(H.shape)
+    smoothed = np.copy(H)
 
     for i in range(0, H.shape[0]):
         energy_mat[:, i] = sum_energy(H[:, i], t_len=t_len).flatten()
@@ -107,11 +110,11 @@ def smooth_activation(H, t_len=3, hop_size=9):
         s = np.maximum(0, j - w)        # start
         e = np.minimum(time_len, j + w) # end
         
-        indices = np.where(energy_mat[i, s:e] > 0)[0] 
+        indices = np.where(energy_mat[i, s:e] != 0)[0] 
         if (indices.shape[0] != 0) and (w > indices[0]) and (w < indices[-1]):
-            offset = i * t_num
+            offset = i * t_len
             # np.mean is also applicable
-            smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, j], axis=1)
+            smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, s:e], axis=1)
             
     return smoothed
 
@@ -126,12 +129,13 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
     
         row = H[i, :]
         # pad 0 at each end, so the difference on both ends can be detected
-        nonzero = np.concatenate(([0], np.greater(np.abs(row).view(np.int8), 0), [0]))
+        nonzero = np.concatenate(([0], np.greater(np.abs(row), 0).view(np.int8), [0]))
         # absdiff, so we will have value 1 at the begin and end points 
         # of the consecutive non-zero elements.
         # by doing so, we can mark the begin and end points of a segments
         absdiff = np.abs(np.diff(nonzero))
         indices = np.where(absdiff == 1)[0].reshape(-1, 2)
+        signal_8bit = template[:, note]
         
         for j in range(0, indices.shape[0]):
             # s and e represent the start and end point of a segment
@@ -142,20 +146,19 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
             if rng <= 1:
                 continue
 
-            signal_8bit = template[:, note]
             # turn into time-domain length
             rng = rng * hop_size
             # pad the signal if it's not long enough
-            while np.shape[0] < rng : 
+            while signal_8bit.shape[0] < rng : 
                 signal_8bit = np.concatenate((signal_8bit, signal_8bit))
             energies = np.mean(H[i:i+t_len, s:e], axis=0) 
             # extend energy matrix to match time-domain length
-            energies = np.repeat(energies, hop_size, axis=1)
+            energies = np.repeat(energies, hop_size)
             
             # turn into time-domain length
             s = s * hop_size
             e = e * hop_size
-            result[s:e] = result[s:e] + signal_8bit[0:rng] * energies 
+            result[s:e, 0] = result[s:e, 0] + signal_8bit[0:rng] * energies 
     
     return result
 
@@ -192,4 +195,7 @@ if __name__ == '__main__':
     accom, fs = librosa.load('examples/c1_accom.wav', sr=44100.)
 
     v8, a8 = convert_to_8bit(accom=accom)
+    librosa.output.write_wav('accom_8.wav', a8, sr=44100)
+    
+    
 
