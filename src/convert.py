@@ -37,7 +37,7 @@ def convert_8bit_accom(V, template, max_iter):
     H = select_notes(H, n=3)
     
     # TODO : smooth activation matrix
-    H = smooth_activation()
+    H = smooth_activation(H)
 
     # TODO : convert to time-domain
 
@@ -111,7 +111,8 @@ def smooth_activation(H, t_len=3, hop_size=9):
         indices, _ = np.where(energy_mat[i, s:e] > 0) 
         if (len(lb) != 0) and (w > indices[0]) and (w < indices[-1]):
             offset = i * t_num
-            smoothed[offset:offset+t_len, j] = np.mean(H[offset:offset+t_len, j], axis=1)
+            # np.mean is also applicable
+            smoothed[offset:offset+t_len, j] = np.median(H[offset:offset+t_len, j], axis=1)
             
     return smoothed
 
