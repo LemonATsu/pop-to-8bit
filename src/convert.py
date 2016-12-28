@@ -1,6 +1,5 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
 import librosa
 import scipy.io as spio
 from scipy.signal import hamming
@@ -10,7 +9,7 @@ from pyin import pYIN
 t_path = os.path.dirname(__file__) + '/../templates/'
 
 def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1024, 
-                        voice_template='pulsenarrow', accom_template='spiky', max_iter=10):
+                        voice_template='pulsenarrow', accom_template='spiky', max_iter=10, **kwargs):
 
     voice_8bit = None
     accom_8bit = None
@@ -20,7 +19,7 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
         voice_spec = librosa.core.stft(voice, n_fft=win_size, 
                                            win_length=win_size, window=window, hop_length=hop_size)
         voice_8bit = convert_8bit_voice(voice, np.abs(voice_spec), voice_template, fs=fs, 
-                                            hop_size=hop_size, max_iter=max_iter)
+                                            hop_size=hop_size, max_iter=max_iter, **kwargs)
 
     if accom is not None:
         accom_spec = librosa.core.stft(accom, n_fft=win_size, 
@@ -30,29 +29,22 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
 
     return voice_8bit, accom_8bit
 
-def convert_8bit_voice(voice, V, template, fs=44100, hop_size=1024, max_iter=10):
+def convert_8bit_voice(voice, V, template, fs=44100, energy=None,
+                          hop_size=1024, max_iter=10, **kwargs):
 
     W = load_mat(template, mat_type='d')
     T = load_mat(template, mat_type='t')
     H = nmf(V, W, max_iter)
 
-    #
-    midi = pYIN(voice, fs=fs, hop_size=hop_size)
-
-
-    # TODO : generate activation
-    energy = np.max(H)
+    # perfrom pYIN to get pitch information
+    midi = pYIN(voice, fs=fs, hop_size=hop_size, **kwargs)
+    # generate activation
+    if energy is None:
+        energy = np.max(H)
     H = generate_activation(midi, energy, H.shape)
-    
-
-    # TODO : smooth activation
+    # smooth activations
     H = smooth_activation(H)
-
-    # TODO : only leave one note in the activation
-    #        to make the sound less noisy
-
-    # TODO : covert to time-domain
-
+    # covert to time-domain
     voice_8bit = convert_to_timedomain(H, hop_size, T)
 
 

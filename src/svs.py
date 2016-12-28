@@ -1,6 +1,6 @@
 from rpca_mask import svs_RPCA
 
-def svs(wave, fs=44100., v_centered=True):
+def svs(wave, fs=44100., v_centered=True, **kwargs):
     """
     Parameters
     ----------
@@ -28,7 +28,7 @@ def svs(wave, fs=44100., v_centered=True):
     if X.ndim > 1:
         rpca_wave = X[:, 1] + X[:, 0]
 
-    voice, accom = svs_RPCA(rpca_wave, fs)
+    voice, accom = svs_RPCA(rpca_wave, fs, **kwargs)
 
     if v_centered == True:
         accom = (X[:, 1] - X[:, 0]) / 2 
