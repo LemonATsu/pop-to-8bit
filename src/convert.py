@@ -33,19 +33,28 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
 def convert_8bit_voice(voice, V, template, fs=44100, hop_size=1024, max_iter=10):
 
     W = load_mat(template, mat_type='d')
+    T = load_mat(template, mat_type='t')
     H = nmf(V, W, max_iter)
 
-    # TODO : pYIN, and 'pick up' the notes
+    #
     midi = pYIN(voice, fs=fs, hop_size=hop_size)
 
+
+    # TODO : generate activation
+    energy = np.max(H)
+    H = generate_activation(midi, energy, H.shape)
+    
+
     # TODO : smooth activation
+    H = smooth_activation(H)
 
     # TODO : only leave one note in the activation
     #        to make the sound less noisy
 
     # TODO : covert to time-domain
 
-    voice_8bit = []
+    voice_8bit = convert_to_timedomain(H, hop_size, T)
+
 
     return voice_8bit
 
@@ -54,7 +63,7 @@ def convert_8bit_accom(V, template, hop_size=1024, max_iter=10):
     W = load_mat(template, mat_type='d')
     T = load_mat(template, mat_type='t')
     H = nmf(V, W, max_iter)
-    #H = spio.loadmat('examples/h.mat')['xdc']
+
     # keep the top 3 notes with the highest energy 
     # in each activation frame
     H = select_notes(H, n=3)
@@ -166,6 +175,18 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
 
     return result
 
+def generate_activation(midi, energy, shape, t_len=3):
+
+    H = np.zeros(shape)
+    indices = np.where(midi != 0)[0]
+
+    for i in range(0, indices.shape[0]):
+        index = indices[i]
+        s = int((midi[index]-1) * t_len)
+        H[s:s+t_len, index] = energy
+
+    return H
+
 def sum_energy(v, t_len=3):
     """
     Compute the energy of templates in a given time frame,
@@ -232,8 +253,8 @@ if __name__ == '__main__':
     voice, fs = librosa.load('examples/c1_voice.wav', sr=44100.)
     accom, fs = librosa.load('examples/c1_accom.wav', sr=44100.)
 
-    v8, a8 = convert_to_8bit(accom=accom)
-    librosa.output.write_wav('accom_8.wav', a8, sr=44100, norm=False)
+    v8, a8 = convert_to_8bit(voice=voice, accom=accom)
+    librosa.output.write_wav('result.wav', v8 * 0.5 + a8 * 0.4, sr=44100, norm=False)
     
     
 
