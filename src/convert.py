@@ -5,8 +5,23 @@ import scipy.io as spio
 from scipy.signal import hamming
 from nmf import nmf
 from pyin import pYIN
+from svs import svs
 
 t_path = os.path.dirname(__file__) + '/../templates/'
+
+def convert(wave, fs=44100, v_centered=True, verbose=True, **kwargs):
+
+
+    if verbose == True :
+        print('Start separating audio ...')
+    voice, accom = svs(wave, fs, v_centered=v_centered)
+    if verbose == True :
+        print('Done. \nStart converting to 8-bit ...')
+    voice_8bit, accom_8bit = convert_to_8bit(voice, accom, fs, **kwargs)
+    if verbose == True :
+        print('Done.')
+
+    return voice_8bit, accom_8bit
 
 def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1024, 
                         voice_template='pulsenarrow', accom_template='spiky', max_iter=10, **kwargs):
@@ -242,11 +257,11 @@ def find_nlargest(v, n=3):
 if __name__ == '__main__':
     
     # example clips, already mono
-    voice, fs = librosa.load('examples/c1_voice.wav', sr=44100.)
-    accom, fs = librosa.load('examples/c1_accom.wav', sr=44100.)
+    song, fs = librosa.load('examples/c1.wav', sr=44100., mono=False)
+    v8, a8 = convert(song, fs)
+    result = v8 * 0.5 + a8 * 0.4
 
-    v8, a8 = convert_to_8bit(voice=voice, accom=accom)
-    librosa.output.write_wav('result.wav', v8 * 0.5 + a8 * 0.4, sr=44100, norm=False)
+    librosa.output.write_wav('result.wav', result, sr=int(fs), norm=False)
     
     
 
