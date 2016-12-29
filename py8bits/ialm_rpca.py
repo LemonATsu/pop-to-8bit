@@ -90,3 +90,37 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
 
     return A_hat, E_hat
 
+def choosvd(n_int,d_int):
+    n = float(n_int)
+    d = float(d_int)
+    if n <= 100:
+        if d / n <= 0.02:
+            return True
+        else:
+            return False
+    elif n <= 200:
+        if d / n <= 0.06:
+            return True
+        else:
+            return False
+    elif n <= 300:
+        if d / n <= 0.26:
+            return True
+        else:
+            return False
+    elif n <= 400:
+        if d / n <= 0.28:
+            return True
+        else:
+            return False
+    elif n <= 500:
+        if d / n <= 0.34:
+            return True
+        else:
+            return False
+    else:
+        if d / n <= 0.38:
+            return True
+        else:
+            return False
+
