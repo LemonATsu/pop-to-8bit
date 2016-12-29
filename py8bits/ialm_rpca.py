@@ -71,10 +71,8 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
         E_hat = np.maximum(T - (l / u), 0) + np.minimum(T + (l / u), 0)
         if choosvd(n, sv):
             U, S, V = svdp(D - E_hat + (1. / u) *Y, sv)
-            print('svdp')
         else:
             U, S, V = svd(D-E_hat + (1. / u) * Y, full_matrices=False)
-            print('svd-')
 
         
         # in np, S is a vector of 'diagonal value', 
@@ -92,6 +90,8 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
         Y = Y + u * Z
         u = np.minimum(u * rho, u_bar)
         stop_criterion = norm(Z, 'fro') / d_norm
+        if stop_criterion <= tol or i >= max_iter:
+            break
 
     return A_hat, E_hat
 
