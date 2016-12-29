@@ -60,7 +60,7 @@ def convert_8bit_voice(voice, V, template, fs=44100, energy=None,
     # smooth activations
     H = smooth_activation(H)
     # covert to time-domain
-    voice_8bit = convert_to_timedomain(H, hop_size, T)
+    voice_8bit = synthesize_in_timedomain(H, hop_size, T)
 
 
     return voice_8bit
@@ -77,11 +77,33 @@ def convert_8bit_accom(V, template, hop_size=1024, max_iter=10):
     # smooth activation matrix
     H = smooth_activation(H)
     # convert to time-domain
-    accom_8bit = convert_to_timedomain(H, hop_size, T)
+    accom_8bit = synthesize_in_timedomain(H, hop_size, T)
 
     return accom_8bit
 
 def load_mat(name, mat_type='d'):
+    """
+    Helper function for loading 8bits template files.
+    The templates we provided is generated in MATLAB,
+    and thus we have to use scipy to parse it.
+
+    Parameters
+    ----------
+    name : str
+        Name of template file.
+    mat_type : str
+        Type of template. 'd' is for the template in 
+        frequency domain, while 't' is in time-domain.
+        
+        The variable stored in _dic.mat (frequency domain templates)
+        is usually named as 'template name'+Temp, while the one in
+        time domain is mat.
+
+    Return
+    ------
+    saved_mat : ndarray
+        Template matrix.
+    """
 
     mat_name = ''
     full_path = ''
@@ -113,6 +135,28 @@ def select_notes(H, n=3, t_len=3):
     return selected
     
 def smooth_activation(H, t_len=3, hop_size=9):
+    """
+    Smoothing the activation matrix by applying median filter to
+    the 'gap' between activated frame.
+    
+    We only interested in the unactivated frames that are between
+    the activated one.
+
+    Parameters
+    ----------
+    H : ndarray
+        Activation matrix.
+    t_len : int
+        The number of components in a template. t_len=3 by default.
+    hop_size : int
+        The width of the median filter.
+
+    Return
+    ------
+    smoothed : ndarray
+        Smoothed activation matrix.
+
+    """
 
     w = int(hop_size / 2)
     energy_mat = np.zeros((int(H.shape[0] / t_len), H.shape[1]))
@@ -128,7 +172,9 @@ def smooth_activation(H, t_len=3, hop_size=9):
         s = np.maximum(0, j - w)        # start
         e = np.minimum(time_len, j + w + 1) # end
         
+        # find the activated frames near the center.
         indices = np.where(energy_mat[i, s:e] != 0)[0] 
+
         if (indices.shape[0] != 0) and (w > indices[0]) and (w < indices[-1]):
             offset = i * t_len
             # np.mean is also applicable
@@ -136,8 +182,28 @@ def smooth_activation(H, t_len=3, hop_size=9):
             
     return smoothed
 
-def convert_to_timedomain(H, hop_size, template, t_len=3):
+def synthesize_in_timedomain(H, hop_size, template, t_len=3):
+    """
+    Synthesize the 8bits signal in time-domain.
+
+    Parameters
+    ----------
+    H : ndarray
+        Activation matrix obtained from either NMF or activation generation.
+    hop_size : ndarray
+        Hop size of the activation matrix.
+    template : ndarray
+        Time domain 8bits template.
+    t_len :
+        The number of components in the frequency domain 8bits templates.
+
+    Return
+    ------
+    result : ndarray
+        Synthesized 8bits signal.
     
+    """
+
     m, n = H.shape
     result = np.zeros((n * hop_size, 1))
     segments = []
@@ -183,6 +249,26 @@ def convert_to_timedomain(H, hop_size, template, t_len=3):
     return result
 
 def generate_activation(midi, energy, shape, t_len=3):
+    """
+    Create an activation matrix by converting a given midi vector.
+    
+    Parameters
+    ----------
+    midi : ndarray
+           Vector of midis, obtained from pYIN.
+    energy : float
+           The energy of each activated frame you want to set.
+    shape : tuple
+           Shape of activation matrix.
+    t_len : int
+           The number of components in a template. t_len=3 by default.
+
+    Return
+    ------
+    H : ndarray
+        Activation martrix with shape=shape.
+
+    """
 
     H = np.zeros(shape)
     indices = np.where(midi != 0)[0]
@@ -204,12 +290,13 @@ def sum_energy(v, t_len=3):
     v : ndarray
         Time frame as a vector.
     t_len : int
-        The number of components in a template. t_len=3 by default
+        The number of components in a template. t_len=3 by default.
 
     Returns
     -------
     energy : ndarray
-        Vectors of 
+        Vectors of activation energies.
+
     """
 
     c = np.abs(v).reshape(-1, 1)
@@ -238,7 +325,7 @@ def find_nlargest(v, n=3):
     value : float
         The n-th strongest activation.
     indices : list
-        Indices of candidates
+        Indices of candidates.
 
     """
 
