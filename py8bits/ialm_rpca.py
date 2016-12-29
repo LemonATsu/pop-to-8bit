@@ -43,7 +43,6 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
     """
 
     m, n = D.shape
-    print(D.shape)
 
     if l == None :
         l = 1. / np.sqrt(m)
