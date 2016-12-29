@@ -10,6 +10,35 @@ from .svs import svs
 t_path = os.path.dirname(__file__) + '/../templates/'
 
 def convert(wave, fs=44100, voice_scale=.3, accom_scale=.4, v_centered=True, verbose=True, **kwargs):
+    """
+    The top function of the whole converting process. 
+    It will first perform singing voice separation, and then process the 
+    separated signal, and synthesize them in the time domain.
+
+    Parameters
+    ----------
+    wave : ndarray
+        Audio input.
+    fs : int
+        Sample rate.
+    voice_scale : float
+        The magnitude scale of converted voice signal.
+    accom_scale : float
+        The magnitude scale of converted accompaniment signal.
+    v_centered : bool
+        If the voice in the wave is centered or not.
+        If so, we can obtain a clear accompaniment signal by simply subtracting 
+        the left and right channel.
+    verbose : bool
+        To print the debug log.
+    **kwargs :
+        Keyword arguments.
+
+    Return
+    ------
+        The converted 8bits signal.
+
+    """
 
 
     if verbose == True :
@@ -25,6 +54,38 @@ def convert(wave, fs=44100, voice_scale=.3, accom_scale=.4, v_centered=True, ver
 
 def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1024, 
                         voice_template='pulsenarrow', accom_template='spiky', max_iter=10, **kwargs):
+    """
+    Convert signal to 8bit.
+    
+    Parameters
+    ----------
+    voice : ndarray
+        Time domain signal of voice that you want to convert to 8bit version.
+    accom : ndarray
+        Time domain signal of accompaniment that you want to convert to 8bit version.
+    fs : int
+        Sample rate.
+    win_size : int
+        Window size for STFT.
+    hop_size : int
+        Hop size for STFT.
+    voice_template : str
+        Name of 8bits template you want to use to convert your voice signal.
+    accom_template : str
+        Name of 8bits template you want to use to convert your accompaniment signal.
+    max_iter : int
+        Number of iterations for NMF.
+    **kwargs : 
+        Keyword arguments for pYIN.
+
+    Returns
+    -------
+    voice_8bit : ndarray
+        Converted 8bits version of voice signal.
+    accom_8bit : ndarray
+        Converted 8bits version of accompaniment signal.
+
+    """
 
     voice_8bit = None
     accom_8bit = None
@@ -46,6 +107,36 @@ def convert_to_8bit(voice=None, accom=None, fs=44100., win_size=2048, hop_size=1
 
 def convert_8bit_voice(voice, V, template, fs=44100, energy=None,
                           hop_size=1024, max_iter=10, **kwargs):
+    """
+    Convert voice signal to 8bit version.
+
+    Parameters
+    ----------
+    voice : ndarray
+        Time domain signal of voice.
+    V : ndarray
+        Magnitude spectrogram of voice.
+    template : str
+        Name of 8bits template.
+    fs : int
+        Sample rate.
+    energy : float
+        Energy you want to assign to the 8bits version signal.
+        Default value is np.max(H) / 4, where H is the activaion matrix
+        of voice from NMF.
+    hop_size : int
+        Hop size of spectrogram.
+    max_iter : int
+        Maximum number of iterations. 
+    **kwargs :
+        Keyword arguments for pYIN.
+
+    Return
+    ------
+    voice_8bit : ndarray
+        Time domain signal of 8bits voice.
+        
+    """
 
     W = load_mat(template, mat_type='d')
     T = load_mat(template, mat_type='t')
@@ -66,6 +157,26 @@ def convert_8bit_voice(voice, V, template, fs=44100, energy=None,
     return voice_8bit
 
 def convert_8bit_accom(V, template, hop_size=1024, max_iter=10):
+    """
+    Convert accompaniment signal to 8bits music.
+
+    Parameters
+    ----------
+    V : ndarray
+        Magnitude spectrogram of accompaniment signal.
+    template : str
+        Name of 8bits template you want to use.
+    hop_size : int
+        Hop size of spectrogram.
+    max_iter : int
+        Maximum number of iterations.
+
+    Return
+    ------
+    accom_8bit : ndarray
+        Time domain signal of 8bits accompaniment.
+
+    """
 
     W = load_mat(template, mat_type='d')
     T = load_mat(template, mat_type='t')
@@ -103,6 +214,7 @@ def load_mat(name, mat_type='d'):
     ------
     saved_mat : ndarray
         Template matrix.
+
     """
 
     mat_name = ''
