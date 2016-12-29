@@ -35,6 +35,11 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
     Perception and Decision Laboratory, University of Illinois, Urbana-Champaign
     Microsoft Research Asia, Beijing
 
+    References
+    ----------
+    Kyle Kastner : https://kastnerkyle.github.io/posts/robust-matrix-decomposition/
+    Alex Pananicolaou : https://github.com/apapanico/RPCA
+
     """
 
     m, n = D.shape
@@ -91,6 +96,22 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
     return A_hat, E_hat
 
 def choosvd(n_, d_):
+    """
+    Function that help us determine whether we should use lansvd or not.
+
+    Parameters
+    ----------
+    n_ : int
+         The 2nd dimensions of a given matrix m x n.
+    d_ : int
+         The number of singular values.
+
+    Returns
+    -------
+       : Bool 
+        Whether we should use lansvd or not.
+
+    """
 
     n = float(n_)
     d = float(d_)
