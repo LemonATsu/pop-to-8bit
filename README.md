@@ -21,3 +21,8 @@ python 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
                 audio_path output_path
 ```
 Tuning the ``step_size`` and ``block_size`` can help reach a more accurate pitch result.
+
+## Acknowledgement
+[librosa: 0.4.1](http://librosa.github.io/librosa/)
+Brian McFee; Matt McVicar; Colin Raffel; Dawen Liang; Oriol Nieto; Eric Battenberg; Josh Moore; Dan Ellis; Ryuichi YAMAMOTO; Rachel Bittner; Douglas Repetto; Petr Viktorin; João Felipe Santos; Adrian Holovaty
+
