@@ -23,9 +23,9 @@ python 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
 Tuning the ``step_size`` and ``block_size`` can help reach a more accurate pitch result.
 
 ## Acknowledgement
-[LibROSA: 0.4.1](http://librosa.github.io/librosa/) :
+-[LibROSA: 0.4.1](http://librosa.github.io/librosa/) :
 Brian McFee; Matt McVicar; Colin Raffel; Dawen Liang; Oriol Nieto; Eric Battenberg; Josh Moore; Dan Ellis; Ryuichi YAMAMOTO; Rachel Bittner; Douglas Repetto; Petr Viktorin; João Felipe Santos; Adrian Holovaty
-[robust-matrix-decomposition](https://kastnerkyle.github.io/posts/robust-matrix-decomposition/) : Kyle Kastner
-[RPCA](https://github.com/apapanico/RPCA) : Alex Pananicolaou
+-[robust-matrix-decomposition](https://kastnerkyle.github.io/posts/robust-matrix-decomposition/) : Kyle Kastner
+-[RPCA](https://github.com/apapanico/RPCA) : Alex Pananicolaou
 
 
