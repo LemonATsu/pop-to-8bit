@@ -1,4 +1,6 @@
-# Automatic Conversion of Pop Music into Chiptunes for 8-Bit Pixel Art
+# Automatic Conversion of Pop Music 
+
+# into Chiptunes for 8-Bit Pixel Art
 
 This is a Python version implementaion of the [paper](https://lemonatsu.github.io/pdf/su17icassp.pdf).
 
