@@ -12,11 +12,9 @@ Note that this version may generate slightly different result in compare to the 
 - Numpy
 
 ## Usage 
-``
-usage: 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
+``usage: 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]``
 
-                [--step_size STEP_SIZE]
+``                [--step_size STEP_SIZE]``
 
-                audio_path output_path
-``
+``                audio_path output_path``
 
