@@ -12,13 +12,12 @@ Note that this version may generate slightly different result in compare to the 
 - Numpy
 
 ## Usage 
-`` You can simply convert your audio by:
+You can simply convert your audio by:
+``` 
 usage: 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
 
                 [--step_size STEP_SIZE]
 
                 audio_path output_path
-
-
-``
+```
 
