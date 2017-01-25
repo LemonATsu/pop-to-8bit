@@ -4,6 +4,8 @@ This is a Python version implementaion of the [paper](https://lemonatsu.github.i
 
 Note that this version may generate slightly different result in compare to the original version, and the processing technique in [section 2.3](https://lemonatsu.github.io/pdf/su17icassp.pdf) of paper is omitted due to that fact that it can be achieve by tuning the parameter of [pYIN](https://code.soundsoftware.ac.uk/projects/pyin) plug-in.
 
+The NMF constraint is also not implemented in this version due to its ineffectiveness of improving the conversion result.
+
 ## Prerequisites
 - Python 3.4+
 - [pYIN vamp plug-in](https://code.soundsoftware.ac.uk/projects/pyin)
