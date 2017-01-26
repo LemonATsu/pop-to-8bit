@@ -5,6 +5,40 @@ import librosa
 
 def svs_RPCA(wave, fs=44100., l=1., n_fft=1024, 
                     win_size=1024, mask_type=1, gain=1, power=1, scf=2./3.):
+    """
+    Use robust principal components analysis(RPCA) to conduct the SVS task.
+
+    Parameters
+    ----------
+    wave : ndarray
+        Audio input.
+    fs : float
+        Sample rate.
+    l : float
+        Lambda parameter for RPCA.
+    n_fft : int
+        Same as the window size.
+    win_size : int
+        Window size for FFT.
+    mask_type : int
+        Type of mask that will be applied to the RPCA result.
+        If equal to 1, it will apply median filter and binary mask
+        to the RPCA results;otherwise it will use no mask.
+    gain : float
+        Gain for the A matrix.
+    power : float
+        Use (input_signal)^power as the input of RPCA. 
+    scf : float
+        Scaling factor of the spectrogram of input wave. 
+
+    Returns
+    -------
+    voice : ndarray
+        Voice separated from the input wave.
+    accom : ndarray
+        Instrumental accompaniment separated from the input wave.
+
+    """
             
     hop_size = int(win_size / 4.)
     S_mix = scf * librosa.core.stft(wave, n_fft=n_fft, 
