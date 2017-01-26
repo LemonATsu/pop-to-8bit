@@ -77,6 +77,7 @@ def proc_frame(data, length, fs=44100., hop_size=1024, offset=34-1):
     ------
     frames : ndarray
         Resulting activation matrix.
+
     """
 
     flen = int(length / hop_size) - 1
