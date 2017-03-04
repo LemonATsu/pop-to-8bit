@@ -355,9 +355,11 @@ def synthesize_in_timedomain(H, hop_size, template, t_len=3):
             s = s * hop_size
             e = e * hop_size
             result[s:e, 0] = result[s:e, 0] + signal_8bit[0:rng] * energies 
-    
-    result = result / (np.max(result) - np.min(result))
-
+    try:
+        result = result / (np.max(result) - np.min(result))
+    except ValueError:
+        print('Warning : invalid value occurs, try changing step_size/block_size to avoid this problem.')
+        
     return result
 
 def generate_activation(midi, energy, shape, t_len=3):
