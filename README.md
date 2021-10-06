@@ -13,7 +13,7 @@ The NMF constraint is also not implemented in this version due to its ineffectiv
 - [Pypropack](https://github.com/jakevdp/pypropack)
 - Numpy
 
-If you use Archlinux, there is an [AUR](https://aur.archlinux.org/pop-to-8bit) package available.
+If you use Archlinux, there is an [AUR](https://aur.archlinux.org/packages/pop-to-8bit) package available.
 
 ## Installation
 
