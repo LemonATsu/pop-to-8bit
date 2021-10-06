@@ -46,7 +46,7 @@ def pYIN(audio, fs=44100., hop_size=1024, block_size=2048, step_size=1024,
         'onsetsensitivity'  : onsetsensitivity,
     }
 
-    data = vamp.collect(audio, fs, 'pyin:pyin', 'notes', 
+    data = vamp.collect(audio, fs, 'vamp-pyin-f0:pyin', 'notes', 
                         parameters=parameters, block_size=block_size, step_size=step_size)['list']
     actl  = proc_frame(data, length, fs=fs, hop_size=hop_size)
 

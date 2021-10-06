@@ -1,5 +1,8 @@
-import librosa
+#!/usr/bin/env python3
+
 import argparse
+import librosa
+import soundfile
 from py8bits import core
 
 
@@ -19,6 +22,6 @@ if __name__ == '__main__':
 
     audio, fs = librosa.load(args.audio_path, args.sample_rate, mono=False)
     audio_8bit = core.convert(audio, fs=fs, v_centered=args.c, block_size=args.block_size, step_size=args.step_size)
-    librosa.output.write_wav(args.output_path, audio_8bit, sr=int(fs), norm=False)
+    soundfile.write(args.output_path, audio_8bit, samplerate=int(fs))
 
 
