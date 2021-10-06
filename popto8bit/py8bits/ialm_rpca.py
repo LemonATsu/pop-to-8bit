@@ -2,7 +2,13 @@ import numpy as np
 from numpy.linalg import svd, norm
 from pypropack import svdp
 
-def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
+def ialm_RPCA(D,
+              l=None,
+              tol=1e-7,
+              max_iter=1000,
+              mu=1.25,
+              rho=1.5,
+              kmax=1):
     """
     Parameters
     ----------
@@ -14,6 +20,9 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
         Tolerance for stopping criterion.
     max_iter : int
         Maximum number of iterations.
+    kmax : int
+        Parameter that controls the number of iterations in pypropack
+        'svdp' function.
 
     Returns
     -------
@@ -69,7 +78,7 @@ def ialm_RPCA(D, l=None, tol=1e-7, max_iter=1000, mu=1.25, rho=1.5):
         T = D - A_hat + (1. / u) * Y
         E_hat = np.maximum(T - (l / u), 0) + np.minimum(T + (l / u), 0)
         if choosvd(n, sv):
-            U, S, V = svdp(D - E_hat + (1. / u) *Y, sv)
+            U, S, V = svdp(D - E_hat + (1. / u) *Y, sv, kmax=sv*kmax)
         else:
             U, S, V = svd(D-E_hat + (1. / u) * Y, full_matrices=False)
 

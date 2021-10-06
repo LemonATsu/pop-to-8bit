@@ -9,10 +9,17 @@ from .svs import svs
 
 t_path = os.path.dirname(__file__) + '/../templates/'
 
-def convert(wave, fs=44100, voice_scale=.3, accom_scale=.4, v_centered=True, verbose=True, **kwargs):
+def convert(wave,
+            fs=44100,
+            voice_scale=.3,
+            accom_scale=.4,
+            v_centered=True,
+            kmax=1,
+            verbose=True,
+            **kwargs):
     """
-    The top function of the whole converting process. 
-    It will first perform singing voice separation, and then process the 
+    The top function of the whole converting process.
+    It will first perform singing voice separation, and then process the
     separated signal, and synthesize them in the time domain.
 
     Parameters
@@ -27,8 +34,11 @@ def convert(wave, fs=44100, voice_scale=.3, accom_scale=.4, v_centered=True, ver
         The magnitude scale of converted accompaniment signal.
     v_centered : bool
         If the voice in the wave is centered or not.
-        If so, we can obtain a clear accompaniment signal by simply subtracting 
+        If so, we can obtain a clear accompaniment signal by simply subtracting
         the left and right channel.
+    kmax : integer
+        Parameter that controls the number of Krylov iterations in pypropack's
+        svdp.
     verbose : bool
         To print the debug log.
     **kwargs :
@@ -43,7 +53,10 @@ def convert(wave, fs=44100, voice_scale=.3, accom_scale=.4, v_centered=True, ver
 
     if verbose == True :
         print('Start separating audio ...')
-    voice, accom = svs(wave, fs, v_centered=v_centered)
+    voice, accom = svs(wave,
+                       fs,
+                       v_centered=v_centered,
+                       kmax=kmax)
     if verbose == True :
         print('Done. \nStart converting to 8-bit ...')
     voice_8bit, accom_8bit = convert_to_8bit(voice, accom, fs, **kwargs)

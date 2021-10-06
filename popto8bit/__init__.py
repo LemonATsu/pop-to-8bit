@@ -33,7 +33,12 @@ def main():
       [("--step_size", ),
        {"type": int,
         "help": 'step size of pYIN (default: 256)',
-        "default": 256}]]
+        "default": 256}],
+      [("--kmax", ),
+       {"type": int,
+        "help": 'krylov iterations factor (default: 1)',
+        "default": 1}]
+    ]
 
     for argument in arguments:
         args, kwargs = argument
@@ -51,7 +56,8 @@ def main():
                               fs=fs,
                               v_centered=args.c,
                               block_size=args.block_size,
-                              step_size=args.step_size)
+                              step_size=args.step_size,
+                              kmax=args.kmax)
 
     soundfile.write(args.output_path,
                     audio_8bit,

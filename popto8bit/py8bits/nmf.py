@@ -1,6 +1,6 @@
 import numpy as np
 
-def nmf(V, W, max_iter=10, random_state=0):
+def nmf(V, W, max_iter=20, random_state=0):
     """
     Parameters
     ----------

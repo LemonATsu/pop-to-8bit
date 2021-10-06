@@ -3,8 +3,16 @@ import numpy as np
 import librosa
 
 
-def svs_RPCA(wave, fs=44100., l=1., n_fft=1024, 
-                    win_size=1024, mask_type=1, gain=1, power=1, scf=2./3.):
+def svs_RPCA(wave,
+             fs=44100.,
+             l=1.,
+             n_fft=1024,
+             win_size=1024,
+             mask_type=1,
+             gain=1,
+             power=1,
+             scf=2./3.,
+             kmax=1):
     """
     Use robust principal components analysis(RPCA) to conduct the SVS task.
 
@@ -27,9 +35,12 @@ def svs_RPCA(wave, fs=44100., l=1., n_fft=1024,
     gain : float
         Gain for the A matrix.
     power : float
-        Use (input_signal)^power as the input of RPCA. 
+        Use (input_signal)^power as the input of RPCA.
     scf : float
-        Scaling factor of the spectrogram of input wave. 
+        Scaling factor of the spectrogram of input wave.
+    kmax : integer
+        Scaling factor which controls the number of Krylov iterations
+        in pypropack svdp.
 
     Returns
     -------
@@ -41,13 +52,18 @@ def svs_RPCA(wave, fs=44100., l=1., n_fft=1024,
     """
             
     hop_size = int(win_size / 4.)
-    S_mix = scf * librosa.core.stft(wave, n_fft=n_fft, 
-                                    hop_length=hop_size, win_length=win_size)
+    S_mix = scf * librosa.core.stft(wave,
+                                    n_fft=n_fft,
+                                    hop_length=hop_size,
+                                    win_length=win_size)
     
     S_mix = S_mix.T
     length = np.max(S_mix.shape)
-    A_mag, E_mag = ialm_RPCA(np.power(np.abs(S_mix), power), l / np.sqrt(length))
-    #A_mag, E_mag, _ = rpca_alm(np.power(np.abs(S_mix), power), l / np.sqrt(length))
+    A_mag, E_mag = ialm_RPCA(np.power(np.abs(S_mix), power),
+                             l / np.sqrt(length),
+                             kmax=kmax)
+    # A_mag, E_mag, _ = rpca_alm(np.power(np.abs(S_mix), power),
+    #                            l / np.sqrt(length))
     phase = np.angle(S_mix.T)
 
     L = (A_mag * np.exp(1j * phase).T)
