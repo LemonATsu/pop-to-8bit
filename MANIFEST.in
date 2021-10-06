@@ -1,0 +1,2 @@
+include popto8bit/examples/*
+include popto8bit/templates/*

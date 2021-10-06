@@ -3,11 +3,10 @@
 import argparse
 import librosa
 import soundfile
-from py8bits import core
+from .py8bits import core
 
 
-if __name__ == '__main__':
-    
+def main():    
     parser = argparse.ArgumentParser()
     parser.add_argument("audio_path", type=str, help='path of input audio')
     parser.add_argument("output_path", type=str, help='path of output file')
@@ -24,4 +23,5 @@ if __name__ == '__main__':
     audio_8bit = core.convert(audio, fs=fs, v_centered=args.c, block_size=args.block_size, step_size=args.step_size)
     soundfile.write(args.output_path, audio_8bit, samplerate=int(fs))
 
-
+if __name__ == '__main__':
+    main()
