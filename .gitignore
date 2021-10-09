@@ -1,0 +1,13 @@
+.buildconfig
+.flatpak-builder
+.ipynb_checkpoints
+_build
+__pycache__
+\#*
+dist
+build
+*.egg-info
+test
+tags
+*~
+*snap

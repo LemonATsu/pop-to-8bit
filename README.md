@@ -13,15 +13,25 @@ The NMF constraint is also not implemented in this version due to its ineffectiv
 - [Pypropack](https://github.com/jakevdp/pypropack)
 - Numpy
 
-## Usage 
-You can simply convert your audio by:
-``` 
-python 8bits.py [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
+If you use Archlinux, there is an [AUR](https://aur.archlinux.org/packages/pop-to-8bit) package available.
+
+## Installation
+
+You can install the package with
+
+    python3 setup.py install
+
+## Usage
+You can simply convert your audio with:
+
+```console
+popto8bit [-h] [-s SAMPLE_RATE] [--block_size BLOCK_SIZE]
 
                 [--step_size STEP_SIZE]
 
                 audio_path output_path
 ```
+
 Tuning the ``step_size`` and ``block_size`` can help reach a more accurate pitch result.
 
 ## Acknowledgement
