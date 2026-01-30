@@ -49,7 +49,7 @@ def main():
     print(f'block_size : {args.block_size}, step_size : {args.step_size}')
 
     audio, fs = librosa.load(args.audio_path,
-                             args.sample_rate,
+                             sr=args.sample_rate,
                              mono=False)
 
     audio_8bit = core.convert(audio,

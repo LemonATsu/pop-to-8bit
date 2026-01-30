@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import svd, norm
-from pypropack import svdp
+from scipy.sparse.linalg import svds
 
 def ialm_RPCA(D,
               l=None,
@@ -78,7 +78,10 @@ def ialm_RPCA(D,
         T = D - A_hat + (1. / u) * Y
         E_hat = np.maximum(T - (l / u), 0) + np.minimum(T + (l / u), 0)
         if choosvd(n, sv):
-            U, S, V = svdp(D - E_hat + (1. / u) *Y, sv, kmax=sv*kmax)
+            U, S, V = svds(D - E_hat + (1. / u) *Y, k=min(sv, min(m, n) - 1))
+            # svds returns in ascending order, reverse to descending
+            idx = np.argsort(S)[::-1]
+            U, S, V = U[:, idx], S[idx], V[idx, :]
         else:
             U, S, V = svd(D-E_hat + (1. / u) * Y, full_matrices=False)
 

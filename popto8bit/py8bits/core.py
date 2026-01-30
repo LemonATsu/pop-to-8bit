@@ -2,7 +2,7 @@ import os
 import numpy as np
 import librosa
 import scipy.io as spio
-from scipy.signal import hamming
+from scipy.signal.windows import hamming
 from .nmf import nmf
 from .pyin import pYIN
 from .svs import svs

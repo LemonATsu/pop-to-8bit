@@ -6,8 +6,6 @@ with open("README.md", "r", encoding="utf-8") as readme:
 
 classifiers = [
   "Programming Language :: Python :: 3",
-  ("License :: OSI Approved :: "
-   "GNU Affero General Public License v3 or later (AGPLv3+)"),
   "Operating System :: Unix"]
 
 setup_kwargs = {
@@ -23,8 +21,7 @@ setup_kwargs = {
   "include_package_data": True,
   "entry_points": {'console_scripts': ['popto8bit = popto8bit:main']},
   "install_requires": ['librosa',
-                       'pypropack',
-                       'vamp'],
+                       'scipy'],
   "classifiers": classifiers
 }
 
